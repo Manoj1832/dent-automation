@@ -40,12 +40,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       );
     }
 
+    const isProd = process.env.NODE_ENV === 'production';
+
     response.status(status).json({
       success: false,
-      statusCode: status,
-      message,
-      errors,
-      path: request.url,
+      error: message,
+      code: status,
+      ...(errors ? { errors } : {}),
+      ...(isProd ? {} : { path: request.url }),
       timestamp: new Date().toISOString(),
     });
   }

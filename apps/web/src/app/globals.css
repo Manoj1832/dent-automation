@@ -70,6 +70,14 @@
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: rgba(255,255,255,0.1);
   --sidebar-ring: #3B82F6;
+
+  /* Spacing scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
 }
 
 * {
@@ -179,4 +187,34 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* ── Form Input Standardization ── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+input[type="search"],
+input[type="url"],
+textarea,
+select {
+  height: 40px;
+  font-size: 14px;
+}
+textarea {
+  height: auto;
+  min-height: 80px;
+}
+
+/* ── Form group spacing ── */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+/* ── Accessibility: Muted text minimum contrast ── */
+.text-muted-foreground {
+  color: #6b7280;
 }

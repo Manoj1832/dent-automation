@@ -200,7 +200,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat Cards - 4 Column Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }} className="mb-6">
         <div className="rounded-[12px] p-4 bg-[#2563EB] text-white card-hover">
           <p className="font-display text-[28px] font-bold">{patientsData?.length || 0}</p>
           <p className="text-[11px] text-white/70 font-medium">Total Patients</p>

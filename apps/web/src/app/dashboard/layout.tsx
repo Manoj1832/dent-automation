@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { patientApi, appointmentApi } from '@/lib/api';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AiChatBot from '@/components/AiChatBot';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   LayoutDashboard,
   Calendar,
@@ -154,13 +155,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen overflow-hidden bg-[#F8F9FA] font-sans text-[#0D0D0D]">
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/20 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/20 z-40 md:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar - Blue */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-60 flex flex-col transition-transform duration-300 ease-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed md:static inset-y-0 left-0 z-50 w-60 flex flex-col transition-transform duration-300 ease-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
         style={{ backgroundColor: '#1E40AF' }}
       >
@@ -174,7 +175,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="text-[10px] text-white/60 font-display leading-tight">ARUMUGAVADIVU</span>
             </div>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1.5 rounded-lg hover:bg-white/10 ml-auto text-white/50">
+          <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1.5 rounded-lg hover:bg-white/10 ml-auto text-white/50">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -217,7 +218,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="h-14 flex items-center px-6 bg-white border-b border-[rgba(0,0,0,0.08)] flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden mr-3 p-2 rounded-lg hover:bg-[#F1F0EA] text-[#6B7280]"
+            className="md:hidden mr-3 p-2 rounded-lg hover:bg-[#F1F0EA] text-[#6B7280]"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -304,8 +305,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {children}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <div className="mx-auto max-w-[1280px] w-full">
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+          </div>
         </div>
       </main>
       <AiChatBot />

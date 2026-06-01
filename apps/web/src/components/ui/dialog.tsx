@@ -52,12 +52,23 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
+        role="dialog"
+        aria-modal="true"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-white shadow-2xl p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          // Desktop: centered modal
+          "fixed z-50 grid w-full gap-4 bg-white shadow-2xl p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-200 outline-none",
+          "data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+          // Desktop positioning
+          "sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-sm sm:max-w-[calc(100%-2rem)] sm:rounded-xl sm:data-open:zoom-in-95 sm:data-closed:zoom-out-95",
+          // Mobile: bottom sheet
+          "max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:top-auto max-sm:max-h-[90vh] max-sm:overflow-y-auto max-sm:rounded-t-2xl max-sm:pb-[calc(1rem+env(safe-area-inset-bottom))]",
+          "max-sm:data-open:slide-in-from-bottom max-sm:data-closed:slide-out-to-bottom",
           className
         )}
         {...props}
       >
+        {/* Mobile drag handle */}
+        <div className="mx-auto h-1.5 w-12 rounded-full bg-gray-300 sm:hidden" />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close

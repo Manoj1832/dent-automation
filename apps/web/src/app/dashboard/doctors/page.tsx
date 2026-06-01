@@ -268,7 +268,7 @@ export default function DoctorsPage() {
               </div>
             ) : doctors.length > 0 ? (
               <>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto w-full">
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border/50 hover:bg-transparent">

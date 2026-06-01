@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RateLimiterService } from '../rate-limiter/rate-limiter.service';
 import { LoginDto, CreateUserDto } from './dto';
 
 @Injectable()
@@ -16,15 +17,25 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly rateLimiter: RateLimiterService,
   ) {}
 
   async login(dto: LoginDto) {
     const email = dto.email.trim();
+    const failKey = `failed_logins:${email}`;
+    
+    const failedCount = await this.rateLimiter.getRemaining(failKey);
+    if (failedCount >= 5) {
+      this.logger.warn(`Login blocked: Account locked for ${email} due to too many failed attempts`);
+      throw new UnauthorizedException('Too many failed attempts. Account locked for 15 minutes.');
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
+      await this.rateLimiter.incrementCounter(failKey, 900);
       this.logger.warn(`Login failed: User not found for email '${email}'`);
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -37,9 +48,12 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
     if (!isPasswordValid) {
+      await this.rateLimiter.incrementCounter(failKey, 900);
       this.logger.warn(`Login failed: Invalid password for email '${email}'`);
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    await this.rateLimiter.resetKey(failKey);
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 

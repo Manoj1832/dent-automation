@@ -13,7 +13,7 @@ async function main() {
   const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
   let admin;
   if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash('SreeArumuga@2026!', 10);
     admin = await prisma.user.create({
       data: {
         email: adminEmail,
@@ -299,7 +299,7 @@ async function main() {
   console.log(`   - 15 Appointments`);
   console.log(`   - 10 Treatment records`);
   console.log(`   - 10 Invoices`);
-  console.log('\n📋 Login: admin@dentflow.com / admin123');
+  console.log('\n📋 Login: admin@dentflow.com / SreeArumuga@2026!');
 }
 
 main()

@@ -21,31 +21,34 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const response = await authApi.login({ email, password });
-      console.log('Login response:', response);
-      
-      const userData = response.data.data || response.data;
-      console.log('User data:', userData);
+     try {
+       const response = await authApi.login({ email, password });
+       console.log('Login response:', response);
+       console.log('Login response.data:', response.data);
+       console.log('Login response.data.data:', response.data.data);
+       
+       const userData = response.data.data || response.data;
+       console.log('User data:', userData);
+       console.log('User data user:', userData.user);
 
-      setAuth(
-        {
-          id: userData.user.id,
-          email: userData.user.email,
-          name: userData.user.name,
-          role: userData.user.role,
-        }
-      );
+       setAuth(
+         {
+           id: userData.user.id,
+           email: userData.user.email,
+           name: userData.user.name,
+           role: userData.user.role,
+         }
+       );
 
-      toast.success(`Welcome back, ${userData.user.name}!`);
-      return router.push('/dashboard');
-    } catch (err: unknown) {
-      console.error('Login error:', err);
-      const error = err as { response?: { data?: { message?: string } }, message?: string };
-      toast.error(error.response?.data?.message || error.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
+       toast.success(`Welcome back, ${userData.user.name}!`);
+       return router.push('/dashboard');
+     } catch (err: unknown) {
+       console.error('Login error:', err);
+       const error = err as { response?: { data?: { message?: string } }, message?: string };
+       toast.error(error.response?.data?.message || error.message || 'Login failed');
+     } finally {
+       setLoading(false);
+     }
   };
 
   return (

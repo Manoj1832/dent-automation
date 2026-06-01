@@ -28,8 +28,8 @@ describe('AppointmentService - Concurrency & Double Booking', () => {
       patient: {
         findUnique: jest.fn().mockResolvedValue({ id: 'pat-1' }),
       },
-      doctor: {
-        findUnique: jest.fn().mockResolvedValue({ id: 'doc-1' }),
+      user: {
+        findUnique: jest.fn().mockResolvedValue({ id: 'doc-1', role: 'DOCTOR' }),
       },
     };
 
@@ -117,10 +117,11 @@ describe('AppointmentService - Concurrency & Double Booking', () => {
         type: 'CHECKUP',
       };
 
-      // Mock DB to return an existing appointment during the secondary re-validation check
-      (prismaService.appointment.findFirst as jest.Mock)
-        .mockResolvedValueOnce(null) // Queue number fetch
-        .mockResolvedValueOnce({ id: 'appt-999', status: 'SCHEDULED' }); // Existing appt check
+       // Mock DB to return an existing appointment during the secondary re-validation check
+       (prismaService.appointment.findFirst as jest.Mock)
+         .mockResolvedValueOnce(null) // Duplicate patient/date check
+         .mockResolvedValueOnce(null) // Queue number fetch
+         .mockResolvedValueOnce({ id: 'appt-999', status: 'SCHEDULED' }); // Existing appt check (stolen slot)
 
       await expect(service.create(dto)).rejects.toThrow(ConflictException);
 

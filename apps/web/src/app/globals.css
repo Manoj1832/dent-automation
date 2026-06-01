@@ -189,6 +189,26 @@ body {
   letter-spacing: 0.05em;
 }
 
+/* ── Spacing Scale ── */
+:root {
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+}
+
+/* ── Max Width Container ── */
+.max-width-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  padding-left: var(--space-sm);
+  padding-right: var(--space-sm);
+}
+
 /* ── Form Input Standardization ── */
 input[type="text"],
 input[type="email"],

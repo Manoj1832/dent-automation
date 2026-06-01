@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense, lazy } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth-store';
@@ -8,6 +8,7 @@ import { patientApi, appointmentApi } from '@/lib/api';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AiChatBot from '@/components/AiChatBot';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { PageSkeleton } from '@/components/ui/skeleton';
 import {
   LayoutDashboard,
   Calendar,
@@ -24,9 +25,19 @@ import {
   Bell,
   ChevronDown,
   Activity,
-  Loader2,
   MessageSquare,
+  Loader2,
 } from 'lucide-react';
+
+// Lazy load page components for better performance
+const lazyLoadPage = (importFn: any) => {
+  const LazyComponent = lazy(importFn);
+  return (
+    <Suspense fallback={<PageSkeleton className="min-h-[calc(100vh-14rem)]" />}>
+      <LazyComponent />
+    </Suspense>
+  );
+};
 
 interface User {
   id: string;
@@ -62,10 +73,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    hydrate();
-    setHydrated(true)
-  }, [hydrate])
+   useEffect(() => {
+     hydrate();
+     requestAnimationFrame(() => setHydrated(true));
+   }, [hydrate])
 
   useEffect(() => {
     if (hydrated && !isAuthenticated) {
@@ -306,9 +317,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          <div className="mx-auto max-w-[1280px] w-full">
+          <div className="max-width-container">
             <ErrorBoundary>
-              {children}
+              <Suspense fallback={<PageSkeleton className="min-h-[calc(100vh-14rem)]" />}>
+                {children}
+              </Suspense>
             </ErrorBoundary>
           </div>
         </div>

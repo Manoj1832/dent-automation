@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { patientApi } from '@/lib/api';
+import { TableSkeleton } from '@/components/ui/skeleton';
 import { GooglePlacesAutocomplete } from '@/components/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -291,13 +292,13 @@ export default function PatientsPage() {
           </DialogHeader>
           {createdPatient && (
             <div className="space-y-6">
-              <div className="flex flex-col items-center">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${createdPatient.patientId}`}
-                  alt="Patient QR Code"
-                  className="w-48 h-48 rounded-xl border-4 border-[#0EA5E9]/20"
-                />
-              </div>
+               <div className="flex flex-col items-center">
+                 <img loading="lazy"
+                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${createdPatient.patientId}`}
+                   alt="Patient QR Code"
+                   className="w-48 h-48 rounded-xl border-4 border-[#0EA5E9]/20"
+                 />
+               </div>
               <div className="bg-[#0EA5E9]/5 border border-[#0EA5E9]/20 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Patient ID</span>
@@ -377,11 +378,7 @@ export default function PatientsPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 shimmer rounded-lg" />
-              ))}
-            </div>
+            <TableSkeleton rows={5} cols={7} />
           ) : data?.patients && data.patients.length > 0 ? (
             <>
               <div className="overflow-x-auto">

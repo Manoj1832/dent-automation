@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { TableSkeleton } from '@/components/ui/skeleton';
 import { treatmentApi, patientApi, doctorApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -230,21 +231,19 @@ export default function TreatmentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] text-slate-700 font-sans">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#F8F9FA] text-[#0D0D0D] font-sans">
+      <div className="max-width-container py-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h1 className="text-3xl font-display font-bold text-slate-800 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0EA5E9]/10 border border-[#0EA5E9]/20 flex items-center justify-center">
-                <Stethoscope className="h-5 w-5 text-[#0EA5E9]" />
-              </div>
+            <h1 className="font-display text-[24px] font-bold flex items-center gap-2">
+              <Stethoscope className="h-6 w-6 text-[#2563EB]" />
               Treatments
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-sm text-[#6B7280] mt-1">
               Track and manage dental treatments
             </p>
           </div>
-          <Button onClick={() => setDialogOpen(true)} className="bg-[#0EA5E9] hover:bg-[#0284C7]">
+          <Button onClick={() => setDialogOpen(true)} className="bg-[#2563EB] hover:bg-[#1D4ED8]">
             <Plus className="h-4 w-4 mr-2" />
             Add Treatment
           </Button>
@@ -275,11 +274,7 @@ export default function TreatmentsPage() {
           </div>
           <div className="p-0">
             {isLoading ? (
-              <div className="p-8 space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-16 rounded-xl bg-slate-200 shimmer" />
-                ))}
-              </div>
+              <TableSkeleton rows={5} cols={6} />
             ) : data?.treatments && data.treatments.length > 0 ? (
               <>
                 <div className="overflow-x-auto">
@@ -379,28 +374,45 @@ export default function TreatmentsPage() {
         </div>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+         <DialogContent className="max-w-md sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add New Treatment</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="patient">Patient</Label>
-                <Select value={formData.patientId} onValueChange={(v) => setFormData({ ...formData, patientId: v ?? '' })}>
-                  <SelectTrigger className="h-10 rounded-md border-slate-200">
-                    <SelectValue placeholder="Select patient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patientsData?.map((p: Patient) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name} ({p.patientId || 'N/A'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                   <Label htmlFor="patient">Patient</Label>
+                   <Select value={formData.patientId} onValueChange={(v) => setFormData({ ...formData, patientId: v ?? '' })}>
+                     <SelectTrigger className="h-10 rounded-md border-[rgba(0,0,0,0.08)]">
+                       <SelectValue placeholder="Select patient" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {patientsData?.map((p: Patient) => (
+                         <SelectItem key={p.id} value={p.id}>
+                           {p.name} ({p.patientId || 'N/A'})
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="doctor">Doctor</Label>
+                   <Select value={formData.doctorId} onValueChange={(v) => setFormData({ ...formData, doctorId: v ?? '' })}>
+                     <SelectTrigger className="h-10 rounded-md border-[rgba(0,0,0,0.08)]">
+                       <SelectValue placeholder="Select doctor" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {doctorsData?.map((d: Doctor) => (
+                         <SelectItem key={d.id} value={d.id}>
+                           {d.name}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="doctor">Doctor</Label>
@@ -418,22 +430,23 @@ export default function TreatmentsPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="procedure">Procedure</Label>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {['Root Canal', 'Extraction', 'Filling', 'Scaling', 'Crown', 'Implant'].map((proc) => (
-                    <Button
-                      key={proc}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-6 px-2"
-                      onClick={() => setFormData({ ...formData, procedure: proc })}
-                    >
-                      {proc}
-                    </Button>
-                  ))}
-                </div>
+<div className="space-y-2">
+                 <Label htmlFor="procedure">Procedure</Label>
+                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                   {['Root Canal', 'Extraction', 'Filling', 'Scaling', 'Crown', 'Implant'].map((proc) => (
+                     <Button
+                       key={proc}
+                       type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        className="h-10 px-3 text-sm"
+                        onClick={() => setFormData({ ...formData, procedure: proc })}
+                      >
+                       {proc}
+                     </Button>
+                   ))}
+                 </div>
+               </div>
                 <Input
                   id="procedure"
                   placeholder="e.g., Root Canal, Extraction, Filling"
@@ -446,18 +459,18 @@ export default function TreatmentsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2">
                   <Label>Teeth Selection</Label>
-                  <div className="border border-slate-200 rounded-xl p-2 bg-slate-50 flex justify-center">
-                    <Odontogram
-                      theme="light"
-                      layout="circle"
-                      showTooltip={true}
-                      onChange={(selected) => {
-                        const teeth = selected.map(t => parseInt(t.notations.fdi)).filter(n => !isNaN(n));
-                        setFormData({ ...formData, toothNumbers: teeth });
-                      }}
-                      styles={{ maxWidth: '180px', maxHeight: '300px' }}
-                    />
-                  </div>
+<div className="border border-slate-200 rounded-xl p-2 bg-slate-50 flex justify-center items-center">
+                     <Odontogram
+                       theme="light"
+                       layout="circle"
+                       showTooltip={true}
+                       onChange={(selected) => {
+                         const teeth = selected.map(t => parseInt(t.notations.fdi)).filter(n => !isNaN(n));
+                         setFormData({ ...formData, toothNumbers: teeth });
+                       }}
+                       styles={{ width: '100%', maxWidth: '280px', height: 'auto' }}
+                     />
+                   </div>
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="cost">Cost (₹)</Label>
@@ -509,43 +522,35 @@ export default function TreatmentsPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="prescription">Prescription</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-xs"
-                    onClick={() => startVoiceInput('prescription')}
-                  >
-                    {recordingField === 'prescription' ? (
-                      <MicOff className="h-4 w-4 text-red-500 animate-pulse" />
-                    ) : (
-                      <Mic className="h-4 w-4" />
-                    )}
-                    <span className="ml-1">{recordingField === 'prescription' ? 'Recording...' : 'Voice'}</span>
-                  </Button>
-                </div>
-                <Textarea
-                  id="prescription"
-                  placeholder="Prescription details... (or use voice input)"
-                  value={formData.prescription}
-                  onChange={(e) => setFormData({ ...formData, prescription: e.target.value })}
-                  rows={2}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending} className="bg-[#0EA5E9] hover:bg-[#0284C7]">
-                {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Add Treatment
-              </Button>
-            </DialogFooter>
-          </form>
+               <div className="space-y-2">
+                 <div className="flex items-center justify-between">
+                   <Label htmlFor="prescription">Prescription</Label>
+                   <Button
+                     type="button"
+                     variant="ghost"
+                     size="sm"
+                     className="h-8 text-xs"
+                     onClick={() => startVoiceInput('prescription')}
+                   >
+                      {recordingField === 'prescription' ? (
+                        <MicOff className="h-4 w-4 text-red-500 animate-pulse" />
+                      ) : (
+                        <Mic className="h-4 w-4" />
+                      )}
+                      <span className="ml-1">{recordingField === 'prescription' ? 'Recording...' : 'Voice'}</span>
+                    </Button>
+                   </div>
+                 </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createMutation.isPending} className="bg-[#2563EB] hover:bg-[#1D4ED8]">
+                  {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Add Treatment
+                </Button>
+              </DialogFooter>
+            </form>
         </DialogContent>
       </Dialog>
     </div>

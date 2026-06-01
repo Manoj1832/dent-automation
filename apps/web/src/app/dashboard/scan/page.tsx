@@ -235,7 +235,7 @@ export default function ScanPage() {
           {foundPatient && (
             <div className="space-y-4 mt-2">
               <div className="flex items-center gap-4">
-                <img
+                <img loading="lazy"
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(JSON.stringify({ id: foundPatient.id, patientId: foundPatient.patientId }))}`}
                   alt="Patient QR"
                   className="w-28 h-28 rounded-xl border border-slate-200"

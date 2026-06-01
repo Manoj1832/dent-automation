@@ -117,7 +117,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
         <div className="hidden sm:flex flex-col items-center gap-2">
-          <img
+          <img loading="lazy"
             src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${patient.patientId}`}
             alt="Patient QR Code"
             className="w-28 h-28 rounded-xl border-2 border-[#0EA5E9]/20"

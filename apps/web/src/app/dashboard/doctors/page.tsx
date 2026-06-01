@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { TableSkeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -261,11 +262,7 @@ export default function DoctorsPage() {
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="p-8 space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-12 shimmer rounded-lg" />
-                ))}
-              </div>
+              <TableSkeleton rows={5} cols={7} />
             ) : doctors.length > 0 ? (
               <>
                 <div className="overflow-x-auto w-full">

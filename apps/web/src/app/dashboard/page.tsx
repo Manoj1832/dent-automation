@@ -163,8 +163,13 @@ export default function DashboardPage() {
         const d = new Date(appointmentForm.date);
         startTimeStr = d.toISOString();
       }
-      const { time, ...rest } = appointmentForm;
-      createAppointment.mutate({ ...rest, date: new Date(appointmentForm.date).toISOString(), startTime: startTimeStr });
+      const { time, type, ...rest } = appointmentForm;
+      createAppointment.mutate({ 
+        ...rest, 
+        type: type || undefined,
+        date: new Date(appointmentForm.date).toISOString(), 
+        startTime: startTimeStr 
+      });
     } else if (activeModal === 'treatment') {
       if (!treatmentForm.patientId || !treatmentForm.doctorId || !treatmentForm.procedure) { toast.error('Fill required fields'); return; }
       createTreatment.mutate({ ...treatmentForm, cost: treatmentForm.cost ? parseFloat(treatmentForm.cost) : null, visitDate: new Date() });
@@ -321,7 +326,7 @@ export default function DashboardPage() {
               <>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Patient *</Label>
-                  <Select value={appointmentForm.patientId} onValueChange={(v) => setAppointmentForm({...appointmentForm, patientId: v || ''})}>
+                  <Select value={appointmentForm.patientId || undefined} onValueChange={(v) => setAppointmentForm({...appointmentForm, patientId: v || ''})}>
                     <SelectTrigger className="h-10 rounded-[10px] border-[rgba(0,0,0,0.08)]"><SelectValue placeholder="Select patient" /></SelectTrigger>
                     <SelectContent>
                       {patientsData?.map((p: Patient) => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.patientId})</SelectItem>))}
@@ -330,7 +335,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Doctor *</Label>
-                  <Select value={appointmentForm.doctorId} onValueChange={(v) => setAppointmentForm({...appointmentForm, doctorId: v || ''})}>
+                  <Select value={appointmentForm.doctorId || undefined} onValueChange={(v) => setAppointmentForm({...appointmentForm, doctorId: v || ''})}>
                     <SelectTrigger className="h-10 rounded-[10px] border-[rgba(0,0,0,0.08)]"><SelectValue placeholder="Select doctor" /></SelectTrigger>
                     <SelectContent>
                       {doctorsData?.map((d: Doctor) => (<SelectItem key={d.id} value={d.id}>Dr. {d.name}</SelectItem>))}
@@ -349,7 +354,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Type</Label>
-                  <Select value={appointmentForm.type} onValueChange={(v) => setAppointmentForm({...appointmentForm, type: v || ''})}>
+                  <Select value={appointmentForm.type || undefined} onValueChange={(v) => setAppointmentForm({...appointmentForm, type: v || ''})}>
                     <SelectTrigger className="h-10 rounded-[10px] border-[rgba(0,0,0,0.08)]"><SelectValue placeholder="Select type" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Consultation">Consultation</SelectItem>
@@ -366,7 +371,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Patient *</Label>
-                    <Select value={treatmentForm.patientId} onValueChange={(v) => setTreatmentForm({...treatmentForm, patientId: v || ''})}>
+                    <Select value={treatmentForm.patientId || undefined} onValueChange={(v) => setTreatmentForm({...treatmentForm, patientId: v || ''})}>
                       <SelectTrigger className="h-10 rounded-[10px] border-[rgba(0,0,0,0.08)]"><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
                         {patientsData?.map((p: Patient) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
@@ -375,7 +380,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Doctor *</Label>
-                    <Select value={treatmentForm.doctorId} onValueChange={(v) => setTreatmentForm({...treatmentForm, doctorId: v || ''})}>
+                    <Select value={treatmentForm.doctorId || undefined} onValueChange={(v) => setTreatmentForm({...treatmentForm, doctorId: v || ''})}>
                       <SelectTrigger className="h-10 rounded-[10px] border-[rgba(0,0,0,0.08)]"><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
                         {doctorsData?.map((d: Doctor) => (<SelectItem key={d.id} value={d.id}>Dr. {d.name}</SelectItem>))}

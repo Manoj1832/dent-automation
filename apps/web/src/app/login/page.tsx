@@ -34,8 +34,7 @@ export default function LoginPage() {
           email: userData.user.email,
           name: userData.user.name,
           role: userData.user.role,
-        },
-        userData.accessToken
+        }
       );
 
       toast.success(`Welcome back, ${userData.user.name}!`);

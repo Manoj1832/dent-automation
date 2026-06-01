@@ -1,0 +1,827 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  engineType      = "library"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm, uuid_ossp(map: "uuid-ossp", schema: "extensions")]
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  password         String
+  name             String
+  role             Role              @default(RECEPTIONIST)
+  phone            String?
+  isActive         Boolean           @default(true)
+  metadata         Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  doctorSlots      AppointmentSlot[] @relation("DoctorSlots")
+  appointments     Appointment[]     @relation("DoctorAppointments")
+  auditLogs        AuditLog[]
+  doctorSchedules  DoctorSchedule[]  @relation("DoctorSchedules")
+  labCases         LabCase[]
+  oralExaminations OralExamination[]
+  treatmentPlans   TreatmentPlan[]
+  treatments       Treatment[]
+
+  @@map("users")
+}
+
+model Patient {
+  id               String            @id @default(cuid())
+  patientId        String            @unique
+  name             String
+  phone            String?
+  email            String?
+  password         String?
+  age              Int?
+  dateOfBirth      DateTime?
+  gender           Gender?
+  address          String?
+  emergencyName    String?
+  emergencyPhone   String?
+  isArchived       Boolean           @default(false)
+  metadata         Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  firstVisitDate   DateTime?         @map("first_visit_date")
+  occupation       String?
+  opNumber         String?           @unique
+  appointments     Appointment[]
+  chiefComplaints  ChiefComplaint[]
+  conversations    Conversation[]
+  files            FileRecord[]
+  invoices         Invoice[]
+  labCases         LabCase[]
+  medicalHistory   MedicalHistory?
+  notificationLogs NotificationLog[]
+  oralExaminations OralExamination[]
+  treatmentPlans   TreatmentPlan[]
+  treatments       Treatment[]
+  waitlists        Waitlist[]
+  whatsappMessages WhatsAppMessage[]
+
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([phone(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([patientId(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([opNumber])
+  @@index([createdAt])
+  @@map("patients")
+}
+
+model MedicalHistory {
+  id                   String   @id @default(cuid())
+  patientId            String   @unique @map("patient_id")
+  diabetic             Boolean  @default(false)
+  hypertension         Boolean  @default(false)
+  hepatic              Boolean  @default(false)
+  cardioVascular       Boolean  @default(false) @map("cardio_vascular")
+  pregnancy            Boolean  @default(false)
+  pregnancyTrimester   Int?     @map("pregnancy_trimester")
+  thyroid              Boolean  @default(false)
+  ulcer                Boolean  @default(false)
+  drugAllergy          Boolean  @default(false) @map("drug_allergy")
+  drugAllergyDetail    String?  @map("drug_allergy_detail")
+  bleedingDisorder     Boolean  @default(false) @map("bleeding_disorder")
+  lactatingMother      Boolean  @default(false) @map("lactating_mother")
+  neural               Boolean  @default(false)
+  renal                Boolean  @default(false)
+  previousCovid19      Boolean  @default(false) @map("previous_covid19")
+  hypercholesterolemia Boolean  @default(false)
+  otherSpecify         String?  @map("other_specify")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  patient              Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@map("medical_histories")
+}
+
+model ChiefComplaint {
+  id                  String   @id @default(cuid())
+  patientId           String   @map("patient_id")
+  pain                Boolean  @default(false)
+  mobility            Boolean  @default(false)
+  irregularlyArranged Boolean  @default(false) @map("irregularly_arranged")
+  bleedingGums        Boolean  @default(false) @map("bleeding_gums")
+  decay               Boolean  @default(false)
+  missingTeeth        Boolean  @default(false) @map("missing_teeth")
+  wantsClean          Boolean  @default(false) @map("wants_clean")
+  jaw                 Jaw?
+  side                Side?
+  region              String?
+  toothNumbers        Int[]    @default([]) @map("tooth_numbers")
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  patient             Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@map("chief_complaints")
+}
+
+model OralExamination {
+  id              String        @id @default(cuid())
+  patientId       String        @map("patient_id")
+  examinedAt      DateTime      @map("examined_at")
+  examinedById    String?       @map("examined_by_id")
+  appointmentId   String?       @map("appointment_id")
+  stainCalculus   Json?         @map("stain_calculus")
+  orthoNotes      String?       @map("ortho_notes")
+  anyOtherMention String?       @map("any_other_mention")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  appointment     Appointment?  @relation(fields: [appointmentId], references: [id])
+  examinedBy      User?         @relation(fields: [examinedById], references: [id])
+  patient         Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  findings        OralFinding[]
+
+  @@index([patientId])
+  @@index([examinedAt])
+  @@index([examinedById])
+  @@map("oral_examinations")
+}
+
+model OralFinding {
+  id                String          @id @default(cuid())
+  oralExaminationId String          @map("oral_examination_id")
+  findingType       FindingType     @map("finding_type")
+  toothNumbers      Int[]           @default([]) @map("tooth_numbers")
+  quadrant          Quadrant?
+  detail            String?
+  notes             String?
+  createdAt         DateTime        @default(now())
+  oralExamination   OralExamination @relation(fields: [oralExaminationId], references: [id], onDelete: Cascade)
+
+  @@index([oralExaminationId])
+  @@map("oral_findings")
+}
+
+model TreatmentPlan {
+  id             String              @id @default(cuid())
+  patientId      String              @map("patient_id")
+  plannedAt      DateTime            @map("planned_at")
+  plannedById    String?             @map("planned_by_id")
+  appointmentId  String?             @map("appointment_id")
+  status         TreatmentPlanStatus @default(PLANNED)
+  preOpPhoto     Boolean             @default(false) @map("pre_op_photo")
+  preOpModel     Boolean             @default(false) @map("pre_op_model")
+  estimatedTotal Float?              @map("estimated_total")
+  discountAmount Float?              @map("discount_amount")
+  notes          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  invoices       Invoice[]
+  procedures     PlannedProcedure[]
+  appointment    Appointment?        @relation(fields: [appointmentId], references: [id])
+  patient        Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  plannedBy      User?               @relation(fields: [plannedById], references: [id])
+  treatments     Treatment[]
+
+  @@index([patientId])
+  @@index([status])
+  @@index([plannedAt])
+  @@map("treatment_plans")
+}
+
+model PlannedProcedure {
+  id              String                 @id @default(cuid())
+  treatmentPlanId String                 @map("treatment_plan_id")
+  procedureType   ProcedureType          @map("procedure_type")
+  toothNumbers    Int[]                  @default([]) @map("tooth_numbers")
+  material        String?
+  typeDetail      String?                @map("type_detail")
+  estimatedCost   Float?                 @map("estimated_cost")
+  status          PlannedProcedureStatus @default(PLANNED)
+  completedAt     DateTime?              @map("completed_at")
+  notes           String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  treatmentPlan   TreatmentPlan          @relation(fields: [treatmentPlanId], references: [id], onDelete: Cascade)
+  treatments      Treatment[]
+
+  @@index([treatmentPlanId])
+  @@map("planned_procedures")
+}
+
+model Appointment {
+  id               String            @id @default(cuid())
+  date             DateTime
+  startTime        DateTime
+  endTime          DateTime?
+  status           AppointmentStatus @default(SCHEDULED)
+  type             String?
+  notes            String?
+  queueNumber      Int?
+  metadata         Json?
+  patientId        String
+  doctorId         String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  doctor           User              @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  patient          Patient           @relation(fields: [patientId], references: [id])
+  auditLogs        AuditLog[]
+  notificationLogs NotificationLog[]
+  oralExaminations OralExamination[]
+  treatmentPlans   TreatmentPlan[]
+  treatments       Treatment[]
+
+  @@index([date])
+  @@index([status])
+  @@index([doctorId, date])
+  @@index([patientId])
+  @@map("appointments")
+}
+
+model Treatment {
+  id                 String            @id @default(cuid())
+  procedure          String?
+  prescription       String?
+  cost               Float?
+  metadata           Json?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  appointmentId      String?           @map("appointment_id")
+  doctorId           String            @map("doctor_id")
+  followUpDate       DateTime?         @map("follow_up_date")
+  followUpNotes      String?           @map("follow_up_notes")
+  medicationsGiven   String?           @map("medications_given")
+  patientId          String            @map("patient_id")
+  plannedProcedureId String?           @map("planned_procedure_id")
+  procedureNotes     String?           @map("procedure_notes")
+  sutureDetails      Json?             @map("suture_details")
+  toothNumbers       Int[]             @default([]) @map("tooth_numbers")
+  treatmentPlanId    String?           @map("treatment_plan_id")
+  visitDate          DateTime          @map("visit_date")
+  files              FileRecord[]
+  appointment        Appointment?      @relation(fields: [appointmentId], references: [id])
+  doctor             User              @relation(fields: [doctorId], references: [id])
+  patient            Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  plannedProcedure   PlannedProcedure? @relation(fields: [plannedProcedureId], references: [id])
+  treatmentPlan      TreatmentPlan?    @relation(fields: [treatmentPlanId], references: [id])
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([visitDate])
+  @@index([treatmentPlanId])
+  @@map("treatments")
+}
+
+model FileRecord {
+  id           String       @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  path         String
+  category     FileCategory @default(OTHER)
+  description  String?
+  metadata     Json?
+  patientId    String?
+  treatmentId  String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  patient      Patient?     @relation(fields: [patientId], references: [id])
+  treatment    Treatment?   @relation(fields: [treatmentId], references: [id])
+
+  @@index([patientId])
+  @@index([category])
+  @@map("file_records")
+}
+
+model Invoice {
+  id              String         @id @default(cuid())
+  invoiceNumber   String         @unique
+  totalAmount     Float
+  paidAmount      Float          @default(0)
+  status          PaymentStatus  @default(PENDING)
+  items           Json
+  notes           String?
+  dueDate         DateTime?
+  metadata        Json?
+  patientId       String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  discountAmount  Float?         @map("discount_amount")
+  estimatedTotal  Float?         @map("estimated_total")
+  treatmentPlanId String?        @map("treatment_plan_id")
+  patient         Patient        @relation(fields: [patientId], references: [id])
+  treatmentPlan   TreatmentPlan? @relation(fields: [treatmentPlanId], references: [id])
+  payments        Payment[]
+
+  @@index([patientId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([treatmentPlanId])
+  @@map("invoices")
+}
+
+model Payment {
+  id          String    @id @default(cuid())
+  amount      Float
+  method      String
+  referenceNo String?
+  notes       String?
+  metadata    Json?
+  invoiceId   String
+  createdAt   DateTime  @default(now())
+  paidAt      DateTime? @map("paid_at")
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id])
+
+  @@map("payments")
+}
+
+model LabCase {
+  id           String        @id @default(cuid())
+  labName      String
+  caseType     String
+  toothNumbers Int[]         @default([])
+  status       LabCaseStatus @default(SENT)
+  instructions String?
+  sentDate     DateTime      @default(now())
+  expectedDate DateTime?
+  deliveryDate DateTime?
+  cost         Float?
+  notes        String?
+  metadata     Json?
+  patientId    String
+  doctorId     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  doctor       User          @relation(fields: [doctorId], references: [id])
+  patient      Patient       @relation(fields: [patientId], references: [id])
+
+  @@index([status])
+  @@index([patientId])
+  @@index([sentDate])
+  @@map("lab_cases")
+}
+
+model AuditLog {
+  id            String       @id @default(cuid())
+  action        String
+  entity        String
+  entityId      String?
+  details       Json?
+  ipAddress     String?
+  createdAt     DateTime     @default(now())
+  appointmentId String?      @map("appointment_id")
+  userId        String?      @map("user_id")
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+  @@index([entityId])
+  @@map("audit_logs")
+}
+
+model ClinicSettings {
+  id         String   @id @default("default")
+  clinicName String   @default("DentFlow Clinic")
+  phone      String?
+  email      String?
+  address    String?
+  logo       String?
+  settings   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("clinic_settings")
+}
+
+model WhatsAppMessage {
+  id             String        @id @default(cuid())
+  wabaId         String        @map("waba_id")
+  phone          String
+  messageType    String        @map("message_type")
+  content        String?
+  mediaUrl       String?       @map("media_url")
+  messageId      String?       @unique @map("message_id")
+  direction      String
+  status         String        @default("sent")
+  deliveryStatus String?      @map("delivery_status")
+  errorCode      String?       @map("error_code")
+  errorMessage   String?       @map("error_message")
+  rawPayload     Json?         @map("raw_payload")
+  processed      Boolean       @default(false)
+  patientId      String?       @map("patient_id")
+  conversationId String?       @map("conversation_id")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  patient        Patient?      @relation(fields: [patientId], references: [id])
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+
+  @@index([phone])
+  @@index([messageId])
+  @@index([patientId])
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([status])
+  @@index([deliveryStatus])
+  @@index([processed])
+  @@map("whatsapp_messages")
+}
+
+model WhatsAppTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  category    String
+  content     String
+  headerType  String?  @map("header_type")
+  headerValue String?  @map("header_value")
+  footerText  String?  @map("footer_text")
+  buttons     Json?
+  language    String   @default("en")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("whatsapp_templates")
+}
+
+model Conversation {
+  id              String                @id @default(cuid())
+  phone           String
+  patientId       String?               @map("patient_id")
+  state           ConversationState     @default(IDLE)
+  workflowType    String?               @map("workflow_type")
+  context         Json                  @default("{}")
+  selectedDoctor  String?               @map("selected_doctor")
+  selectedDate    String?               @map("selected_date")
+  selectedSlot    String?               @map("selected_slot")
+  retries         Int                   @default(0)
+  humanTakeover   Boolean               @default(false) @map("human_takeover")
+  assignedStaffId String?               @map("assigned_staff_id")
+  expiresAt       DateTime?             @map("expires_at")
+  lastMessageAt   DateTime              @map("last_message_at")
+  messageCount    Int                   @default(0) @map("message_count")
+  language        String                @default("en")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  messages        ConversationMessage[]
+  whatsappMessages WhatsAppMessage[]
+  patient         Patient?              @relation(fields: [patientId], references: [id])
+
+  @@index([phone])
+  @@index([patientId])
+  @@index([state])
+  @@index([lastMessageAt])
+  @@index([expiresAt])
+  @@index([state, phone])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String       @id @default(cuid())
+  conversationId String       @map("conversation_id")
+  role           String
+  content        String
+  intent         String?
+  confidence     Float?       @map("confidence")
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([role])
+  @@map("conversation_messages")
+}
+
+model AppointmentSlot {
+  id          String   @id @default(cuid())
+  doctorId    String   @map("doctor_id")
+  date        DateTime @db.Date
+  startTime   String   @map("start_time")
+  endTime     String   @map("end_time")
+  duration    Int      @default(30)
+  isAvailable Boolean  @default(true) @map("is_available")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  doctor      User     @relation("DoctorSlots", fields: [doctorId], references: [id])
+
+  @@unique([doctorId, date, startTime])
+  @@index([doctorId, date])
+  @@index([date])
+  @@map("appointment_slots")
+}
+
+model AppointmentLock {
+  id            String   @id @default(cuid())
+  slotKey       String   @unique @map("slot_key")
+  appointmentId String   @map("appointment_id")
+  lockedBy      String   @map("locked_by")
+  expiresAt     DateTime @map("expires_at")
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([status])
+  @@map("appointment_locks")
+}
+
+model Waitlist {
+  id             String    @id @default(cuid())
+  patientId      String    @map("patient_id")
+  doctorId       String?   @map("doctor_id")
+  preferredDate  DateTime  @map("preferred_date")
+  timePreference String?   @map("time_preference")
+  reason         String?
+  status         String    @default("WAITING")
+  notifiedAt     DateTime? @map("notified_at")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  patient        Patient   @relation(fields: [patientId], references: [id])
+
+  @@index([status])
+  @@index([patientId])
+  @@index([preferredDate])
+  @@map("waitlists")
+}
+
+model Holiday {
+  id          String   @id @default(cuid())
+  name        String
+  date        DateTime @unique @db.Date
+  isRecurring Boolean  @default(false) @map("is_recurring")
+  clinicId    String?  @map("clinic_id")
+  createdAt   DateTime @default(now())
+
+  @@map("holidays")
+}
+
+model DoctorSchedule {
+  id           String   @id @default(cuid())
+  doctorId     String   @map("doctor_id")
+  dayOfWeek    Int      @map("day_of_week")
+  startTime    String   @map("start_time")
+  endTime      String   @map("end_time")
+  slotDuration Int      @default(30) @map("slot_duration")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  doctor       User     @relation("DoctorSchedules", fields: [doctorId], references: [id])
+
+  @@unique([doctorId, dayOfWeek])
+  @@index([doctorId])
+  @@map("doctor_schedules")
+}
+
+model NotificationLog {
+  id            String       @id @default(cuid())
+  type          String
+  channel       String
+  recipient     String
+  patientId     String?      @map("patient_id")
+  appointmentId String?      @map("appointment_id")
+  template      String?
+  content       String
+  status        String       @default("PENDING")
+  meta          Json?
+  sentAt        DateTime?    @map("sent_at")
+  deliveredAt   DateTime?    @map("delivered_at")
+  errorMessage  String?      @map("error_message")
+  retryCount    Int          @default(0) @map("retry_count")
+  createdAt     DateTime     @default(now())
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  patient       Patient?     @relation(fields: [patientId], references: [id])
+
+  @@index([type, status])
+  @@index([patientId])
+  @@index([appointmentId])
+  @@index([createdAt])
+  @@map("notification_logs")
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  RECEPTIONIST
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  MISSED
+}
+
+enum LabCaseStatus {
+  SENT
+  IN_PROGRESS
+  READY
+  DELIVERED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum FileCategory {
+  XRAY
+  PRESCRIPTION
+  INVOICE
+  TREATMENT_PHOTO
+  REPORT
+  LAB_INSTRUCTION
+  OTHER
+}
+
+enum Jaw {
+  UPPER
+  LOWER
+  BOTH
+}
+
+enum Side {
+  RIGHT
+  LEFT
+  FRONT
+  BACK
+  ALL
+}
+
+enum Quadrant {
+  UL
+  UR
+  LL
+  LR
+  ALL
+}
+
+enum FindingType {
+  STAINS_CALCULUS
+  DC
+  CLASS_II_DC
+  CLASS_V
+  GD
+  DEEP_CARIES
+  ROOT_STUMP
+  OLD_CROWN_BRIDGE
+  OLD_RPD_CD
+  GRADE_I_MOBILITY
+  GRADE_II_MOBILITY
+  GRADE_III_MOBILITY
+  ORTHO
+  OLD_RCT_WITH_CROWN
+  OLD_RCT_WITHOUT_CROWN
+  OLD_FILLING
+  NON_VITAL
+  DISCOLOURED
+  HIGH_FRENAL_ATTACHMENT
+  MIDLINE_DIASTEMA
+  FRACTURED
+  IMPACTED
+  PARTIALLY_IMPACTED
+}
+
+enum ProcedureType {
+  SCALING
+  WHITENING
+  POLISHING
+  IOPA
+  RCT
+  EXTRACTION
+  CROWN
+  PULPOTOMY
+  CROWN_BRIDGE
+  FILLING
+  RPD
+  SUNPLAST
+  HYBRID_RPD
+  CD
+  OPG
+  IMPLANT
+  FLAP_SURGERY
+  ORTHO
+  BONE_GRAFTING
+  FLUORIDE_APPLICATION
+  OTHER
+}
+
+enum PlannedProcedureStatus {
+  PLANNED
+  DONE
+  SKIPPED
+}
+
+enum TreatmentPlanStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ConversationState {
+  IDLE
+  GREETING
+  ASK_NEW_EXISTING
+  IDENTIFYING_PATIENT
+  COLLECTING_NAME
+  COLLECTING_PHONE
+  COLLECTING_AGE_GENDER
+  SELECTING_ACTION
+  SELECTING_DOCTOR
+  SELECTING_SLOT
+  CONFIRMING_BOOKING
+  RESCHEDULING
+  CANCELLING
+  HUMAN_SUPPORT
+  FOLLOW_UP
+  COMPLETED
+}
+
+model WebhookEvent {
+  id         String   @id @default(cuid())
+  eventId    String   @unique @map("event_id")
+  payload    Json
+  processed  Boolean  @default(false)
+  retryCount Int      @default(0) @map("retry_count")
+  error      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([processed])
+  @@index([createdAt])
+  @@map("webhook_events")
+}
+
+// =====================
+// CHAIRS (Multi-Chair Room View)
+// =====================
+model Chair {
+  id            String      @id @default(cuid())
+  name          String
+  room          String?
+  status        ChairStatus @default(VACANT)
+  doctorId      String?     @map("doctor_id")
+  patientId     String?     @map("patient_id")
+  nextPatientId String?     @map("next_patient_id")
+  nextEta       DateTime?   @map("next_eta")
+  metadata      Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status])
+  @@map("chairs")
+}
+
+enum ChairStatus {
+  VACANT
+  ACTIVE
+  CLEANING
+}
+
+// =====================
+// FEEDBACK RESPONSES (Post-Visit)
+// =====================
+model FeedbackResponse {
+  id               String   @id @default(cuid())
+  appointmentId    String   @map("appointment_id")
+  patientId        String   @map("patient_id")
+  rating           Int
+  comment          String?
+  channel          String   @default("WHATSAPP")
+  googleReviewSent Boolean  @default(false) @map("google_review_sent")
+  createdAt        DateTime @default(now())
+
+  @@index([appointmentId])
+  @@index([patientId])
+  @@index([rating])
+  @@index([createdAt])
+  @@map("feedback_responses")
+}
+
+// =====================
+// DOCTOR BLOCKED PERIODS
+// =====================
+model DoctorBlockedPeriod {
+  id        String   @id @default(cuid())
+  doctorId  String   @map("doctor_id")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([doctorId])
+  @@index([startDate, endDate])
+  @@map("doctor_blocked_periods")
+}

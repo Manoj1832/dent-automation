@@ -1,0 +1,11 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      run: /opt/homebrew/bin/pnpm lint
+    typecheck:
+      run: /opt/homebrew/bin/pnpm tsc
+    build:
+      run: /opt/homebrew/bin/pnpm build
+    test:
+      run: /opt/homebrew/bin/pnpm test:ci

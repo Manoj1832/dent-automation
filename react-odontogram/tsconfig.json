@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"types": ["vitest/globals", "@testing-library/jest-dom"],
+		"esModuleInterop": true,
+		"jsx": "react-jsx",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"skipLibCheck": true,
+		"strict": true,
+		"noEmit": true,
+		"noImplicitAny": false
+	}
+}

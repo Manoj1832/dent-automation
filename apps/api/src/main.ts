@@ -20,8 +20,23 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: [frontendUrl, 'http://localhost:3000'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [
+        frontendUrl.replace(/\/$/, ''), // Strip trailing slash just in case
+        'http://localhost:3000',
+        'https://dent-automation.vercel.app'
+      ];
+      
+      if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(null, false); // Or throw error, but false just blocks it safely
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
 
